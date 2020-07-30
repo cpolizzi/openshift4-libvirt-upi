@@ -1,0 +1,27 @@
+cluster_name: ocp
+cluster_domain: vtx.private
+
+cluster:
+  nodes:
+    bootstrap:
+      name: "{{ cluster_name }}-bootstrap"
+      fqdn: "{{ cluster_name }}-bootstrap.{{ cluster_name }}.{{ cluster_domain }}"
+    masters:
+      - name: "{{ cluster_name }}-master-0"
+        fqdn: "{{ cluster_name }}-master-0.{{ cluster_name }}.{{ cluster_domain }}"
+      - name: "{{ cluster_name }}-master-1"
+        fqdn: "{{ cluster_name }}-master-1.{{ cluster_domain }}"
+      - name: "{{ cluster_name }}-master-2"
+        fqdn: "{{ cluster_name }}-master-2.{{ cluster_name }}.{{ cluster_domain }}"
+    workers:
+      - name: "{{ cluster_name }}-worker-0"
+        fqdn: "{{ cluster_name }}-worker-0.{{ cluster_name }}.{{ cluster_domain }}"
+      - name: "{{ cluster_name }}-worker-1"
+        fqdn: "{{ cluster_name }}-worker-1.{{ cluster_name }}.{{ cluster_domain }}"
+      - name: "{{ cluster_name }}-worker-2"
+        fqdn: "{{ cluster_name }}-worker-2.{{ cluster_name }}.{{ cluster_domain }}"
+  dns:
+    api:
+      fqdn: "api.{{ cluster_name }}.{{ cluster_domain }}"
+    api-int:
+      fqdn: "api-int.{{ cluster_name }}.{{ cluster_domain }}"

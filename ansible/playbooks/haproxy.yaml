@@ -1,0 +1,44 @@
+---
+- hosts: haproxy
+  become: yes
+  tasks:
+    - name: disable SELinux
+      selinux:
+        state: disabled
+
+    - name: set hostname
+      hostname:
+        name: "{{ inventory_hostname }}"
+
+    - name: install haproxy
+      package:
+        name: haproxy
+        state: present
+
+    - name: install rsyslog
+      package:
+        name: rsyslog
+        state: present
+
+    - name: configure haproxy
+      template:
+        src: templates/haproxy/haproxy.cfg
+        dest: /etc/haproxy/
+
+    - name: configure haproxy logging
+      template:
+        src: templates/rsyslog.d/haproxy.conf
+        dest: /etc/rsyslog.d/
+
+    - name: enable and start rsyslog
+      systemd:
+        name: rsyslog
+        enabled: yes
+        state: restarted
+
+    - name: enable and start haproxy
+      systemd:
+        name: haproxy
+        enabled: yes
+        state: restarted
+...
