@@ -1,12 +1,12 @@
 resource "local_file" "ssh-private-key" {
     content = var.loadbalancer.ssh_key.private_key_pem
-    filename = "${var.gen_dir}/ssh/loadbalancer"
+    filename = "${var.gen_dir}/keys/loadbalancer"
     file_permission = "0600"
 }
 
 resource "local_file" "ssh-public-key" {
     content = var.loadbalancer.ssh_key.public_key_openssh
-    filename = "${var.gen_dir}/ssh/loadbalancer.pub"
+    filename = "${var.gen_dir}/keys/loadbalancer.pub"
     file_permission = "0644"
 }
 

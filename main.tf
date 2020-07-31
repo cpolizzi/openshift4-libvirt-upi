@@ -2,6 +2,21 @@ provider "libvirt" {
     uri = "qemu:///system"
 }
 
+resource "local_file" "pull-secret" {
+    content = file("${var.pull_secret_file}")
+    filename = "${var.gen_dir}/cluster/pull-secret.json"
+    file_permission = 0644
+}
+
+module "install-config" {
+    source = "./install-config"
+    gen_dir = var.gen_dir
+    base_domain = var.base_domain
+    cluster_name = var.cluster_name
+    masters_count = var.masters_count
+    pull_secret = local_file.pull-secret.content
+}
+
 module "loadbalancer" {
     source = "./haproxy"
 }
