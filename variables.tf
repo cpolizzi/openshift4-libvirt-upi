@@ -24,6 +24,10 @@ variable "masters_count" {
 
 variable "pull_secret_file" {
     type = string
-    default = "pull-secret.json"
     description = "File containing pull secret"
+}
+
+variable "openshift_installer" {
+    type = string
+    description = "Path to the OpenShift installer"
 }

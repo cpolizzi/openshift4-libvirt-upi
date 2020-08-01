@@ -20,3 +20,8 @@ variable "masters_count" {
 variable "pull_secret" {
     description = "Cluster pull secret"
 }
+
+variable "openshift_installer" {
+    type = string
+    description = "Path to the OpenShift installer"
+}
