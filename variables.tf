@@ -18,8 +18,26 @@ variable "cluster_name" {
 
 variable "masters_count" {
     type = number
-    default = "1"
+    default = 1
     description = "Number of masters"
+}
+
+variable "masters_cpu" {
+    type = number
+    default = 4
+    description = "Number of CPUs per master"
+}
+
+variable "masters_memory" {
+    type = number
+    default = 16
+    description = "Memory in GiB per master"
+}
+
+variable "masters_disk_size" {
+    type = number
+    default = 120
+    description = "Disk size in GiB per master - TODO currently IGNORED"
 }
 
 variable "pull_secret_file" {

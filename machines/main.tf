@@ -5,6 +5,8 @@ locals {
 resource "libvirt_volume" "volume" {
     count = var.instances_count
     name = format("${local.node_name}%02d.qcow", count.index)
+# TODO We have to currently ignore being able to size the disk because the libvirt terraform provider
+#    size = var.disk_size * 1024 * 1024 * 1024
     pool = "default"
     source = "${var.image_dir}/${var.image_name}"
     format = "qcow2"
@@ -18,8 +20,8 @@ resource "libvirt_ignition" "ignition" {
 resource "libvirt_domain" "instance" {
     count = var.instances_count
     name   = format("${local.node_name}%02d", count.index)
-    memory = "1024"
-    vcpu   = 1
+    memory = var.memory * 1024
+    vcpu   = var.cpu
     coreos_ignition = libvirt_ignition.ignition.id
 
     network_interface {

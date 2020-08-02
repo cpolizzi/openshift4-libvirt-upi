@@ -43,3 +43,21 @@ variable "network_name" {
     default = "default"
     description = "Existing network interface to use"
 }
+
+variable "cpu" {
+    type = number
+    default = 1
+    description = "Number of CPUs"
+}
+
+variable "memory" {
+    type = number
+    default = 16
+    description = "Memory in GiB"
+}
+
+variable "disk_size" {
+    type = number
+    default = 120
+    description = "Disk size in GiB - TODO currently IGNORED"
+}
