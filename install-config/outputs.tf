@@ -3,7 +3,7 @@ output "bootstrap_ignition" {
 }
 
 output "compute_ignition" {
-    value = format("%s/compute.ign", dirname(local_file.install-config.filename))
+    value = format("%s/worker.ign", dirname(local_file.install-config.filename))
 }
 
 output "master_ignition" {

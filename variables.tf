@@ -16,6 +16,24 @@ variable "cluster_name" {
     description = "Cluster name"
 }
 
+variable "bootstrap_cpu" {
+    type = number
+    default = 4
+    description = "Bootstrap number of CPUs"
+}
+
+variable "bootstrap_memory" {
+    type = number
+    default = 16
+    description = "Bootstrap memory in GiB"
+}
+
+variable "bootstrap_disk_size" {
+    type = number
+    default = 120
+    description = "Bootstrap disk size in GiB - TODO currently IGNORED"
+}
+
 variable "master_count" {
     type = number
     default = 1
@@ -48,13 +66,13 @@ variable "worker_count" {
 
 variable "worker_cpu" {
     type = number
-    default = 4
+    default = 2
     description = "Number of CPUs per worker"
 }
 
 variable "worker_memory" {
     type = number
-    default = 16
+    default = 8
     description = "Memory in GiB per worker"
 }
 

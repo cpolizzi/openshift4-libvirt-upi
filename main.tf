@@ -29,6 +29,21 @@ module "install-config" {
     openshift_installer = var.openshift_installer
 }
 
+module "boostrap-node" {
+    source = "./machines"
+    node_role = "bootstrap"
+    node_name_prefix = "ocp-"
+    node_name_suffix = "-"
+    instances_count = 1
+    ignition_config_path = module.install-config.bootstrap_ignition
+    image_dir = "/var/lib/libvirt/images"
+    image_name = "rhcos-4.5.2-x86_64-qemu.x86_64.qcow2"
+    network_name = "default"
+    cpu = var.bootstrap_cpu
+    memory = var.bootstrap_memory
+    disk_size = var.bootstrap_disk_size
+}
+
 module "control-nodes" {
     source = "./machines"
     node_role = "master"
@@ -50,7 +65,7 @@ module "compute-nodes" {
     node_name_prefix = "ocp-"
     node_name_suffix = "-"
     instances_count = 2
-    ignition_config_path = module.install-config.master_ignition
+    ignition_config_path = module.install-config.compute_ignition
     image_dir = "/var/lib/libvirt/images"
     image_name = "rhcos-4.5.2-x86_64-qemu.x86_64.qcow2"
     network_name = "default"
