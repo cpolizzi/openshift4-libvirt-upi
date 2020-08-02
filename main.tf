@@ -29,6 +29,18 @@ module "install-config" {
     openshift_installer = var.openshift_installer
 }
 
+module "control-plane" {
+    source = "./machines"
+    node_role = "master"
+    node_name_prefix = "ocp-"
+    node_name_suffix = "-"
+    instances_count = 3
+    ignition_config_path = module.install-config.master_ignition
+    image_dir = "/var/lib/libvirt/images"
+    image_name = "rhcos-4.5.2-x86_64-qemu.x86_64.qcow2"
+    network_name = "default"
+}
+
 module "loadbalancer" {
     source = "./haproxy"
 }
