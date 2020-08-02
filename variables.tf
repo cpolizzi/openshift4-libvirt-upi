@@ -16,28 +16,52 @@ variable "cluster_name" {
     description = "Cluster name"
 }
 
-variable "masters_count" {
+variable "master_count" {
     type = number
     default = 1
     description = "Number of masters"
 }
 
-variable "masters_cpu" {
+variable "master_cpu" {
     type = number
     default = 4
     description = "Number of CPUs per master"
 }
 
-variable "masters_memory" {
+variable "master_memory" {
     type = number
     default = 16
     description = "Memory in GiB per master"
 }
 
-variable "masters_disk_size" {
+variable "master_disk_size" {
     type = number
     default = 120
     description = "Disk size in GiB per master - TODO currently IGNORED"
+}
+
+variable "worker_count" {
+    type = number
+    default = 1
+    description = "Number of workers"
+}
+
+variable "worker_cpu" {
+    type = number
+    default = 4
+    description = "Number of CPUs per worker"
+}
+
+variable "worker_memory" {
+    type = number
+    default = 16
+    description = "Memory in GiB per worker"
+}
+
+variable "worker_disk_size" {
+    type = number
+    default = 120
+    description = "Disk size in GiB per worker - TODO currently IGNORED"
 }
 
 variable "pull_secret_file" {
