@@ -7,10 +7,11 @@ import sys
 from enum import Enum
 
 class NodeRole(Enum):
-    bootstrap = 0
-    master = 1
-    worker = 2
-    infra = 3
+    loadbalancer = 0
+    bootstrap = 1
+    master = 2
+    worker = 3
+    infra = 4
 
 parser = argparse.ArgumentParser(description="Machine information generation")
 parser.add_argument("--domain-name", type=str, required=True, help="DNS domain name")
@@ -32,6 +33,9 @@ def generate_machine(name, domain_name, ip, mac_oui, cluster_id, role_id, machin
         "mac-address": "{}:{}".format(oui, nic),
         "ip-address": str(ip),
     }
+
+def generate_loadbalancer(domain_name, ip, mac_oui, cluster_id):
+    return generate_machine("loadbalancer", domain_name, ip, mac_oui, cluster_id, NodeRole.loadbalancer.value, 0)
 
 def generate_bootstrap(domain_name, ip, mac_oui, cluster_id):
     return generate_machine("bootstrap", domain_name, ip, mac_oui, cluster_id, NodeRole.bootstrap.value, 0)
@@ -66,6 +70,7 @@ def generate_workers(count, domain_name, ip, mac_oui, cluster_id):
 def main():
     ipnet = ipaddress.ip_network(args.cidr)
     machines = {
+        "loadbalancer": generate_loadbalancer(domain_name = args.domain_name, ip = ipnet.network_address + 10, mac_oui = args.mac_oui, cluster_id = args.cluster_id),
         "bootstrap": generate_bootstrap(domain_name = args.domain_name, ip = ipnet.network_address + 10, mac_oui = args.mac_oui, cluster_id = args.cluster_id),
         "masters": generate_masters(count = args.master_count, domain_name = args.domain_name, ip = ipnet.network_address + 20, mac_oui = args.mac_oui, cluster_id = args.cluster_id),
         "workers": generate_workers(count = args.worker_count, domain_name = args.domain_name, ip = ipnet.network_address + 30, mac_oui = args.mac_oui, cluster_id = args.cluster_id),

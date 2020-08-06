@@ -34,19 +34,20 @@ module "machines-info" {
     gen_dir = var.gen_dir
     master_count = var.master_count
     worker_count = var.worker_count
-    infra_count = 0 # TODO
+    infra_count = var.infra_count
     dns_domain = "${var.cluster_name}.${var.base_domain}"
-    cidr_address = "192.168.200.0/24"   # TODO
-    mac_oui = "52:54:00"
+    cidr_address = var.cluster_network_cidr_address
+    mac_oui = var.cluster_network_mac_oui
     cluster_id = 1
 }
 
 module "network" {
     source = "./network"
-    network_name = ""   # TODO
-    network_bridge = "" # TODO
-    dns_domain = "${var.cluster.name}.${var.base_domain}"
-    cidr_address = "192.168.200.0/24"   # TODO
+    network_name = var.cluster_network_name
+    network_bridge = var.cluster_network_bridge
+    dns_domain = "${var.cluster_name}.${var.base_domain}"
+    cidr_address = var.cluster_network_cidr_address
+    hosts_info = module.machines-info.hosts_config
 }
 
 module "boostrap-node" {

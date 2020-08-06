@@ -17,3 +17,7 @@ variable "cidr_address" {
     type = string
     description = "Subnet to associate with the network in CIDR notation"
 }
+
+variable "hosts_info" {
+    description = "JSON structure containing configuration information for all nodes"
+}

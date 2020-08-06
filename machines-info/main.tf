@@ -1,7 +1,7 @@
 resource "null_resource" "generate-hosts" {
     provisioner "local-exec" {
         command = join(" ", [
-            "./generate-hosts.py",
+            "${path.module}/generate-hosts.py",
             "--domain-name", var.dns_domain,
             "--master-count", var.master_count,
             "--worker-count", var.worker_count,

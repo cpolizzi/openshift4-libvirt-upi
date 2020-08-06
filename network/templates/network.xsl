@@ -19,8 +19,20 @@
     <xsl:template match="/network/ip/dhcp">
         <xsl:element name="dhcp">
             <xsl:apply-templates/>
-            %{ for r in reservations ~}
-            <host name="${r.name}" mac="${r.mac}" ip="${r.ip}"/>
+            <host name="${hosts.loadbalancer.hostname}" mac="${hosts.loadbalancer.mac-address}" ip="${hosts.loadbalancer.ip-address}"/>
+
+            <host name="${hosts.bootstrap.hostname}" mac="${hosts.bootstrap.mac-address}" ip="${hosts.bootstrap.ip-address}"/>
+
+            %{ for host in hosts.masters ~}
+            <host name="${host.hostname}" mac="${host.mac-address}" ip="${host.ip-address}"/>
+            %{ endfor ~}
+
+            %{ for host in hosts.workers ~}
+            <host name="${host.hostname}" mac="${host.mac-address}" ip="${host.ip-address}"/>
+            %{ endfor ~}
+
+            %{ for host in hosts.infras ~}
+            <host name="${host.hostname}" mac="${host.mac-address}" ip="${host.ip-address}"/>
             %{ endfor ~}
         </xsl:element>
     </xsl:template>
@@ -30,7 +42,7 @@
         <xsl:apply-templates select="node()|@*"/>
         </ip>
         <dnsmasq:options>
-            <dnsmasq:option value='address=/apps.ocp.vtx.private/192.168.200.2'/>
+            <dnsmasq:option value="address=/apps.${dns_domain}/${hosts.loadbalancer.ip-address}"/>
         </dnsmasq:options>
     </xsl:template>
 </xsl:stylesheet>
