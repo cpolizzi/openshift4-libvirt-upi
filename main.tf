@@ -29,6 +29,26 @@ module "install-config" {
     openshift_installer = var.openshift_installer
 }
 
+module "machines-info" {
+    source = "./machines-info"
+    gen_dir = var.gen_dir
+    master_count = var.master_count
+    worker_count = var.worker_count
+    infra_count = 0 # TODO
+    dns_domain = "${var.cluster_name}.${var.base_domain}"
+    cidr_address = "192.168.200.0/24"   # TODO
+    mac_oui = "52:54:00"
+    cluster_id = 1
+}
+
+module "network" {
+    source = "./network"
+    network_name = ""   # TODO
+    network_bridge = "" # TODO
+    dns_domain = "${var.cluster.name}.${var.base_domain}"
+    cidr_address = "192.168.200.0/24"   # TODO
+}
+
 module "boostrap-node" {
     source = "./machines"
     node_role = "bootstrap"
