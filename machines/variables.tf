@@ -1,18 +1,10 @@
+variable "hosts_info" {
+    description = "JSON structure containing configuration information for all nodes"
+}
+
 variable "node_role" {
     type = string
     description = "Cluster node role"
-}
-
-variable "node_name_prefix" {
-    type = string
-    default = ""
-    description = "Prefix of cluster node machine names"
-}
-
-variable "node_name_suffix" {
-    type = string
-    default = ""
-    description = "Suffix of cluster node machine names"
 }
 
 variable "instances_count" {

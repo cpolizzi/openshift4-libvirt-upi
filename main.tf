@@ -54,13 +54,12 @@ module "network" {
 module "boostrap-node" {
     source = "./machines"
     node_role = "bootstrap"
-    node_name_prefix = "ocp-"
-    node_name_suffix = "-"
     instances_count = 1
+    hosts_info = [ module.machines-info.hosts_config.bootstrap ]
     ignition_config_path = module.install-config.bootstrap_ignition
     image_dir = "/var/lib/libvirt/images"
     image_name = "rhcos-4.5.2-x86_64-qemu.x86_64.qcow2"
-    network_name = "default"
+    network_name = var.cluster_network_name
     cpu = var.bootstrap_cpu
     memory = var.bootstrap_memory
     disk_size = var.bootstrap_disk_size
@@ -69,13 +68,12 @@ module "boostrap-node" {
 module "control-nodes" {
     source = "./machines"
     node_role = "master"
-    node_name_prefix = "ocp-"
-    node_name_suffix = "-"
-    instances_count = 3
+    instances_count = var.master_count
+    hosts_info = module.machines-info.hosts_config.masters
     ignition_config_path = module.install-config.master_ignition
     image_dir = "/var/lib/libvirt/images"
     image_name = "rhcos-4.5.2-x86_64-qemu.x86_64.qcow2"
-    network_name = "default"
+    network_name = var.cluster_network_name
     cpu = var.master_cpu
     memory = var.master_memory
     disk_size = var.master_disk_size
@@ -84,24 +82,37 @@ module "control-nodes" {
 module "compute-nodes" {
     source = "./machines"
     node_role = "worker"
-    node_name_prefix = "ocp-"
-    node_name_suffix = "-"
-    instances_count = 2
+    instances_count = var.worker_count
+    hosts_info = module.machines-info.hosts_config.workers
     ignition_config_path = module.install-config.compute_ignition
     image_dir = "/var/lib/libvirt/images"
     image_name = "rhcos-4.5.2-x86_64-qemu.x86_64.qcow2"
-    network_name = "default"
+    network_name = var.cluster_network_name
     cpu = var.worker_cpu
     memory = var.worker_memory
     disk_size = var.worker_disk_size
 }
 
-module "loadbalancer" {
-    source = "./haproxy"
+module "infra-nodes" {
+    source = "./machines"
+    node_role = "worker"
+    instances_count = var.infra_count
+    hosts_info = module.machines-info.hosts_config.infras
+    ignition_config_path = module.install-config.compute_ignition
+    image_dir = "/var/lib/libvirt/images"
+    image_name = "rhcos-4.5.2-x86_64-qemu.x86_64.qcow2"
+    network_name = var.cluster_network_name
+    cpu = var.infra_cpu
+    memory = var.infra_memory
+    disk_size = var.infra_disk_size
 }
 
-module "ansible" {
-    source = "./ansible"
-    gen_dir = var.gen_dir
-    loadbalancer = module.loadbalancer.instance
-}
+#module "loadbalancer" {
+#    source = "./haproxy"
+#}
+#
+#module "ansible" {
+#    source = "./ansible"
+#    gen_dir = var.gen_dir
+#    loadbalancer = module.loadbalancer.instance
+#}

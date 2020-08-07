@@ -1,10 +1,6 @@
-locals {
-    node_name = format("%s%s%s", var.node_name_prefix, var.node_role, var.node_name_suffix)
-}
-
 resource "libvirt_volume" "volume" {
     count = var.instances_count
-    name = format("${local.node_name}%02d.qcow", count.index)
+    name = format("${var.hosts_info[count.index].hostname}.qcow")
 # TODO We have to currently ignore being able to size the disk because the libvirt terraform provider
 #    size = var.disk_size * 1024 * 1024 * 1024
     pool = "default"
@@ -19,13 +15,15 @@ resource "libvirt_ignition" "ignition" {
 
 resource "libvirt_domain" "instance" {
     count = var.instances_count
-    name   = format("${local.node_name}%02d", count.index)
+    name   = var.hosts_info[count.index].hostname
     memory = var.memory * 1024
     vcpu   = var.cpu
     coreos_ignition = libvirt_ignition.ignition.id
 
     network_interface {
         network_name = var.network_name
+        hostname = var.hosts_info[count.index].hostname
+        mac = var.hosts_info[count.index].mac-address
         wait_for_lease = true
     }
 
