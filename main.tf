@@ -93,26 +93,28 @@ module "compute-nodes" {
     disk_size = var.worker_disk_size
 }
 
-module "infra-nodes" {
-    source = "./machines"
-    node_role = "worker"
-    instances_count = var.infra_count
-    hosts_info = module.machines-info.hosts_config.infras
-    ignition_config_path = module.install-config.compute_ignition
-    image_dir = "/var/lib/libvirt/images"
-    image_name = "rhcos-4.5.2-x86_64-qemu.x86_64.qcow2"
+#module "infra-nodes" {
+#    source = "./machines"
+#    node_role = "worker"
+#    instances_count = var.infra_count
+#    hosts_info = module.machines-info.hosts_config.infras
+#    ignition_config_path = module.install-config.compute_ignition
+#    image_dir = "/var/lib/libvirt/images"
+#    image_name = "rhcos-4.5.2-x86_64-qemu.x86_64.qcow2"
+#    network_name = var.cluster_network_name
+#    cpu = var.infra_cpu
+#    memory = var.infra_memory
+#    disk_size = var.infra_disk_size
+#}
+
+module "loadbalancer" {
+    source = "./haproxy"
+    host_info = module.machines-info.hosts_config.loadbalancer
     network_name = var.cluster_network_name
-    cpu = var.infra_cpu
-    memory = var.infra_memory
-    disk_size = var.infra_disk_size
 }
 
-#module "loadbalancer" {
-#    source = "./haproxy"
-#}
-#
-#module "ansible" {
-#    source = "./ansible"
-#    gen_dir = var.gen_dir
-#    loadbalancer = module.loadbalancer.instance
-#}
+module "ansible" {
+    source = "./ansible"
+    gen_dir = var.gen_dir
+    loadbalancer = module.loadbalancer.instance
+}
