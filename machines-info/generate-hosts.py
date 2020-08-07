@@ -70,7 +70,7 @@ def generate_workers(count, domain_name, ip, mac_oui, cluster_id):
 def main():
     ipnet = ipaddress.ip_network(args.cidr)
     machines = {
-        "loadbalancer": generate_loadbalancer(domain_name = args.domain_name, ip = ipnet.network_address + 10, mac_oui = args.mac_oui, cluster_id = args.cluster_id),
+        "loadbalancer": generate_loadbalancer(domain_name = args.domain_name, ip = ipnet.network_address + 2, mac_oui = args.mac_oui, cluster_id = args.cluster_id),
         "bootstrap": generate_bootstrap(domain_name = args.domain_name, ip = ipnet.network_address + 10, mac_oui = args.mac_oui, cluster_id = args.cluster_id),
         "masters": generate_masters(count = args.master_count, domain_name = args.domain_name, ip = ipnet.network_address + 20, mac_oui = args.mac_oui, cluster_id = args.cluster_id),
         "workers": generate_workers(count = args.worker_count, domain_name = args.domain_name, ip = ipnet.network_address + 30, mac_oui = args.mac_oui, cluster_id = args.cluster_id),

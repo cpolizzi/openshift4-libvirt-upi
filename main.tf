@@ -48,6 +48,7 @@ module "network" {
     dns_domain = "${var.cluster_name}.${var.base_domain}"
     cidr_address = var.cluster_network_cidr_address
     hosts_info = module.machines-info.hosts_config
+    masters_count = var.master_count
 }
 
 module "boostrap-node" {

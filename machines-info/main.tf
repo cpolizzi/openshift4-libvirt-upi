@@ -22,15 +22,3 @@ data "local_file" "hosts" {
 locals {
     hosts = jsondecode(data.local_file.hosts.content)
 }
-
-data "template_file" "hosts" {
-    template = templatefile("${path.module}/templates/hosts.xml", {
-        config = local.hosts
-    })
-}
-
-resource "local_file" "hosts" {
-    content = data.template_file.hosts.rendered
-    filename = "${var.gen_dir}/out.hosts.xml"
-    file_permission = "0644"
-}

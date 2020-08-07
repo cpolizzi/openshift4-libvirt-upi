@@ -21,3 +21,9 @@ variable "cidr_address" {
 variable "hosts_info" {
     description = "JSON structure containing configuration information for all nodes"
 }
+
+variable "masters_count" {
+    type = number
+    description = "Number of masters"
+}
+
