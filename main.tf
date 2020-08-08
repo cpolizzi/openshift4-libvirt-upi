@@ -117,4 +117,5 @@ module "ansible" {
     source = "./ansible"
     gen_dir = var.gen_dir
     loadbalancer = module.loadbalancer.instance
+    hosts_info_file = "${var.gen_dir}/hosts.json"
 }

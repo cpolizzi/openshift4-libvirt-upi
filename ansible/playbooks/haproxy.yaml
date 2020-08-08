@@ -2,6 +2,10 @@
 - hosts: haproxy
   become: yes
   tasks:
+    - name: include variables
+      include_vars:
+        file: "{{ hosts_info_file }}"
+
     - name: disable SELinux
       selinux:
         state: disabled
