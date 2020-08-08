@@ -1,7 +1,5 @@
-variable "node_name" {
-    type = string
-    default = "loadbalancer"
-    description = "VM name to create"
+variable "host_info" {
+    description = "JSON structure containing configuration information for the node"
 }
 
 variable "image_dir" {

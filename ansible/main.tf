@@ -23,6 +23,13 @@ resource "local_file" "ansible-inventory" {
 
 resource "null_resource" "ansible-inventory" {
     provisioner "local-exec" {
-        command = "ANSIBLE_FORCE_COLOR=1 ansible-playbook -i ${local_file.ansible-inventory.filename} ${path.module}/playbooks/haproxy.yaml"
+#        command = "ANSIBLE_FORCE_COLOR=1 ansible-playbook -i ${local_file.ansible-inventory.filename} ${path.module}/playbooks/haproxy.yaml -e hosts_info_file=${var.hosts_info_file}"
+        command = join(" ", [
+            "ANSIBLE_FORCE_COLOR=1",
+            "ansible-playbook",
+            "-i", local_file.ansible-inventory.filename,
+            "-e", "hosts_info_file=${var.hosts_info_file}",
+            "${path.module}/playbooks/haproxy.yaml",
+        ])
     }
 }

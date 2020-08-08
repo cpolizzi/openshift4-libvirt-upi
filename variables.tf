@@ -12,8 +12,32 @@ variable "base_domain" {
 
 variable "cluster_name" {
     type = string
-    default = "my-cluster"
+    default = "mycluster"
     description = "Cluster name"
+}
+
+variable "cluster_network_cidr_address" {
+    type = string
+    default = "192.168.200.0/24"
+    description = "Cluster network interface CIDR address"
+}
+
+variable "cluster_network_name" {
+    type = string
+    default = "ocp"
+    description = "Network name to create"
+}
+
+variable "cluster_network_bridge" {
+    type = string
+    default = "ocp"
+    description = "Network bridge device name to create"
+}
+
+variable "cluster_network_mac_oui" {
+    type = string
+    default = "52:54:00"
+    description = "MAC address vendor OUI to generate MAC addresses with for machines"
 }
 
 variable "bootstrap_cpu" {
@@ -80,6 +104,30 @@ variable "worker_disk_size" {
     type = number
     default = 120
     description = "Disk size in GiB per worker - TODO currently IGNORED"
+}
+
+variable "infra_count" {
+    type = number
+    default = 0
+    description = "Number of infras"
+}
+
+variable "infra_cpu" {
+    type = number
+    default = 2
+    description = "Number of CPUs per infra"
+}
+
+variable "infra_memory" {
+    type = number
+    default = 8
+    description = "Memory in GiB per infra"
+}
+
+variable "infra_disk_size" {
+    type = number
+    default = 120
+    description = "Disk size in GiB per infra - TODO currently IGNORED"
 }
 
 variable "pull_secret_file" {

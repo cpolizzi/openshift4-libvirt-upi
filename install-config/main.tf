@@ -25,14 +25,27 @@ resource "local_file" "install-config" {
     })
     filename = "${var.gen_dir}/cluster/install-config.yaml"
     file_permission = "0644"
+}
+
+resource "null_resource" "manifests" {
+    depends_on = [ local_file.install-config ]
 
     provisioner "local-exec" {
         command = "${var.openshift_installer} --dir ${var.gen_dir}/cluster create manifests"
     }
 
+}
+
+resource "null_resource" "cluster-scheduler" {
+    depends_on = [ null_resource.manifests ]
+
     provisioner "local-exec" {
-        command = "sed -ire 's/\\(mastersSchedulable: +\\)true/\\1false/' ${var.gen_dir}/cluster/manifests/cluster-scheduler-02-config.yml"
+        command = "sed -ire 's/\\(mastersSchedulable\\): true/\\1: false/' ${var.gen_dir}/cluster/manifests/cluster-scheduler-02-config.yml"
     }
+}
+
+resource "null_resource" "ignition-configs" {
+    depends_on = [ null_resource.cluster-scheduler ]
 
     provisioner "local-exec" {
         command = "${var.openshift_installer} --dir ${var.gen_dir}/cluster create ignition-configs"

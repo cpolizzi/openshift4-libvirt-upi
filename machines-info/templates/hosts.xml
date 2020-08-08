@@ -1,0 +1,35 @@
+<machines>
+    <bootstrap>
+        <host hostname="${config.bootstrap.hostname}"
+              fqdn="${config.bootstrap.fqdn}"
+              ip-address="${config.bootstrap.ip-address}"
+              mac-address="${config.bootstrap.mac-address}"/>
+    </bootstrap>
+
+    <masters>
+%{ for c in config.masters ~}
+        <host hostname="${c.hostname}"
+              fqdn="${c.fqdn}"
+              ip-address="${c.ip-address}"
+              mac-address="${c.mac-address}"/>
+%{ endfor ~}
+    </masters>
+
+    <workers>
+%{ for c in config.workers ~}
+        <host hostname="${c.hostname}"
+              fqdn="${c.fqdn}"
+              ip-address="${c.ip-address}"
+              mac-address="${c.mac-address}"/>
+%{ endfor ~}
+    </workers>
+
+    <infras>
+%{ for c in config.infras ~}
+        <host hostname="${c.hostname}"
+              fqdn="${c.fqdn}"
+              ip-address="${c.ip-address}"
+              mac-address="${c.mac-address}"/>
+%{ endfor ~}
+    </infras>
+</machines>
