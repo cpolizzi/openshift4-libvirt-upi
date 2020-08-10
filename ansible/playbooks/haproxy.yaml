@@ -1,5 +1,12 @@
 ---
 - hosts: haproxy
+  gather_facts: no
+  tasks:
+    - name: wait for loadbalancer host to become available
+      wait_for_connection:
+
+
+- hosts: haproxy
   become: yes
   tasks:
     - name: include variables
