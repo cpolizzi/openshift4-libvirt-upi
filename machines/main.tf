@@ -1,11 +1,17 @@
 resource "libvirt_volume" "volume" {
     count = var.instances_count
-    name = format("${var.hosts_info[count.index].hostname}.qcow")
-# TODO We have to currently ignore being able to size the disk because the libvirt terraform provider
-#    size = var.disk_size * 1024 * 1024 * 1024
+    name = format("${var.hosts_info[count.index].hostname}-img.qcow")
     pool = "default"
     source = "${var.image_dir}/${var.image_name}"
     format = "qcow2"
+}
+
+resource "libvirt_volume" "resize_volume" {
+    count = var.instances_count
+    name = format("${var.hosts_info[count.index].hostname}.qcow")
+    base_volume_id = libvirt_volume.volume[count.index].id
+    pool = "default"
+    size = var.disk_size * 1024 * 1024 * 1024
 }
 
 resource "libvirt_ignition" "ignition" {
@@ -28,6 +34,6 @@ resource "libvirt_domain" "instance" {
     }
 
     disk {
-        volume_id = libvirt_volume.volume[count.index].id
+        volume_id = libvirt_volume.resize_volume[count.index].id
     }
 }
