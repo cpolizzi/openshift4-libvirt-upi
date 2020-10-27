@@ -1,0 +1,75 @@
+= OpenShift 4 KVM IPI
+
+Terraform first approach to install an OpenShift 4 cluster under KVM / libvirt and HAProxy as the load balancer.
+
+It takes advantage of https://libvirt.org/formatnetwork.html#elementsNamespaces[libvirt Network namespaces] to set up
+wildcard DNS for default ingress so you don't have to.
+
+It will automatically generate the `install-config.yaml` for the cluster, generate cluster SSH key pair and SSH key pair
+for load balancer node.
+
+This has been tested against Terraform v0.12.
+
+== Usage
+
+=== Prerequisites
+
+* Install libvirt:
+** https://docs.fedoraproject.org/en-US/quick-docs/getting-started-with-virtualization/[Fedora]
+** https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/configuring_and_managing_virtualization/getting-started-with-virtualization-in-rhel-8_configuring-and-managing-virtualization[RHEL 8]
+** https://wiki.libvirt.org/page/UbuntuKVMWalkthrough[Ubuntu and Pop!OS]
+* https://learn.hashicorp.com/tutorials/terraform/install-cli[Install Terraform]
+* https://github.com/dmacvicar/terraform-provider-libvirt#installing[Install libvirt Provider]
+* https://cloud.centos.org/centos/8/x86_64/images/[CentOS 8 Generic Cloud Image (for load balancer node)]
+* http://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/[OpenShift QEMU Image]
+* OpenShift Installer
+* Pull Secret
+* https://www.ansible.com/[Ansible]
+
+=== Add libvirt dnsmasq server to Network Manager
+
+In `/etc/NetworkManager/dnsmasq.d/` create a file for the DNS configuration. For example, we might use:
+[source,bash]
+----
+cat <<EOF > sudo /etc/NetworkManager/dnsmasq.d/ocp.dnsmasq.conf
+server=/ocp.example.io/192.168.200.1
+EOF
+----
+
+Restart Network Manager:
+[source,bash]
+----
+sudo systemctl restart NetworkManager
+----
+
+
+=== Override Terraform Variables for OpenShift Installer and Pull Secret
+In `terraform.tfvars`:
+[source,hcl]
+----
+openshift_installer = "<path-to-openshift-installer>"
+pull_secret_file    = "<path-to-pull-secret-file>"
+----
+
+=== Override Terraform Variables for OpenShift Cluster Nodes
+For now, consult `variables.tf`.
+
+*TODO* This will be updated later to provide more comphrensive configuration guidance.
+
+=== Install
+
+[source,bash]
+----
+terraform init
+terraform plan
+terraform apply -auto-approve
+----
+
+HAProxy statistics page is enabled and you can reach it via: http://loadbalancer.<cluster-name>.<base-domain-name>:8404/stats
+
+=== Uninstall
+
+[source, bash]
+----
+terraform destroy -auto-approve
+----
