@@ -1,4 +1,4 @@
-= OpenShift 4 KVM IPI
+= OpenShift 4 KVM UPI
 
 Terraform first approach to install an OpenShift 4 cluster under KVM / libvirt and HAProxy as the load balancer.
 
