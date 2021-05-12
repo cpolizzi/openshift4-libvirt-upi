@@ -12,16 +12,18 @@ Terraform first approach to install an OpenShift 4 cluster under KVM / libvirt a
 
 Notable highlights of this approach:
 
-* Cluster Installation Configuration Generation
-* Dynamic Inventory Generation
-* MAC Address Generation for Nodes
-* Terraform JSON Ingestion as Variables
-* Libvirt Network Namespaces
-* Load Balancer Provisioning
+* <<Cluster Installation Configuration Generation>>
+* <<Dynamic Inventory Generation>>
+* <<MAC Address Generation for Nodes>>
+* <<Terraform JSON Ingestion as Variables>>
+* <<libvirt Network Namespaces>>
+* <<Load Balancer Provisioning>>
 
 toc::[]
 
+
 == Usage
+
 
 === Prerequisites
 
@@ -37,11 +39,13 @@ toc::[]
 * Pull Secret
 * https://www.ansible.com/[Ansible]
 
+
 === Tested Configurations
 
 * Pop!OS 20.04 LTS
 * OpenShift 4.5.14
 * Terraform v0.12
+
 
 === Add libvirt dnsmasq server to Network Manager
 
@@ -63,7 +67,7 @@ dns=dnsmasq
 EOF
 ----
 
-Restart Network Manager:
+* Restart Network Manager:
 [source,bash]
 ----
 sudo systemctl restart NetworkManager
@@ -91,6 +95,7 @@ For now, consult `variables.tf`.
 
 *TODO* This will be updated later to provide more comphrensive configuration guidance.
 
+
 === Install
 
 [source,bash]
@@ -102,6 +107,7 @@ terraform apply -auto-approve
 
 HAProxy statistics page is enabled and you can reach it via: http://loadbalancer.<cluster-name>.<base-domain-name>:8404/stats
 
+
 === Uninstall
 
 [source, bash]
@@ -109,14 +115,17 @@ HAProxy statistics page is enabled and you can reach it via: http://loadbalancer
 terraform destroy -auto-approve
 ----
 
+
 == Details
+
 
 === Cluster Installation Configuration Generation
 
 *TODO*
 
- We automatically generate the `install-config.yaml` for the cluster, generate cluster SSH key pair and SSH key pair
+We automatically generate the `install-config.yaml` for the cluster, generate cluster SSH key pair and SSH key pair
 for load balancer node.
+
 
 === Dynamic Inventory Generation
 
@@ -134,7 +143,6 @@ setup DHCP reservations in on the libvirt network for every node. Doing this ass
 time instead of having to come back and query libvirt for the IP address assigned to each node while the infrastructure
 is being provisioned.
 
-Credit: David Dreggors, Red Hat
 
 === Terraform JSON Ingestion as Variables
 
@@ -143,6 +151,7 @@ Credit: David Dreggors, Red Hat
 We leverage Terraform's ability to ingest JSON and use it as a source of variables. We exploit this to generate the
 necessary cluster node assets prior to provisioning them.
 
+
 === libvirt Network Namespaces
 
 *TODO*
@@ -150,8 +159,16 @@ necessary cluster node assets prior to provisioning them.
 We take advantage of https://libvirt.org/formatnetwork.html#elementsNamespaces[libvirt Network Namespaces] to set up
 wildcard DNS for default ingress so you don't have to.
 
+
 === Load Balancer Provisioning
 
 *TODO*
 
 A dedicated node is automatically provisioned for the HAProxy node.
+
+
+== Acknowledgements
+
+* David Dreggors, Red Hat
+** For the idea, inspiration and discussion of <<MAC Address Generation for Nodes>>
+** A very nice, working and sustainable HAProxy configuration
