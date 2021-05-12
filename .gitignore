@@ -3,3 +3,5 @@
 *.tfstate.backup
 .*.swp
 generated/
+*.html
+*.pdf
