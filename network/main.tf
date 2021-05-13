@@ -56,10 +56,12 @@ resource "libvirt_network" "openshift" {
         enabled = true
     }
 
+    # tag::network-customization[]
     xml {
         xslt = templatefile("${path.module}/templates/network.xsl", {
             dns_domain = var.dns_domain,
             hosts = var.hosts_info,
         })
     }
+    # end::network-customization[]
 }
