@@ -5,6 +5,9 @@
 :numbered:
 :chapter-label:
 :icons: font
+:pygments-style: tango
+:source-highlighter: rouge
+
 
 = OpenShift 4 KVM UPI
 
@@ -51,6 +54,7 @@ toc::[]
 === Add libvirt dnsmasq server to Network Manager
 
 * In `/etc/NetworkManager/dnsmasq.d/` create a file for the DNS configuration. This will allow the host system to resolve addresses for the cluster using the libvirt DNS mask instance listening on the specified IP address. For example, we might use:
+
 [source,bash]
 ----
 cat <<EOF > sudo /etc/NetworkManager/dnsmasq.d/ocp.dnsmasq.conf
@@ -69,6 +73,7 @@ EOF
 ----
 
 * Restart Network Manager:
+
 [source,bash]
 ----
 sudo systemctl restart NetworkManager
@@ -78,6 +83,7 @@ sudo systemctl restart NetworkManager
 === Override Terraform Variables for OpenShift Installer and Pull Secret
 
 In `terraform.tfvars`:
+
 [source,hcl]
 ----
 openshift_installer = "<path-to-openshift-installer>"
@@ -97,7 +103,7 @@ Paths may be absolute or relative.
 Every cluster has simple and basic information that will uniquely identify it.
 
 In `terraform.tfvars`:
-[source,txt]
+[source,hcl]
 ----
 cluster_name                 = "mycluster"          # <.>
 base_domain                  = "example.io"         # <.>
@@ -106,6 +112,7 @@ cluster_network_cidr_address = "192.168.200.0/24"   # <.>
 <.> Cluster name as a simple host name
 <.> Cluster base DNS domain
 <.> Cluster network expressed in CIDR
+
 
 ==== Nodes
 
@@ -121,7 +128,7 @@ post configuration step of the installed cluster.
 ====
 
 In `terraform.tfvars`:
-[source,txt]
+[source,hcl]
 ----
 master_count = 3    # <.>
 worker_count = 2    # <.>
@@ -142,7 +149,7 @@ Currently ignored
 Each node type can be customized for CPU, memory and disk.
 
 Control plane (e.g., master nodes):
-[source,txt]
+[source,hcl]
 ----
 master_cpu       = 4    # <.>
 master_memory    = 16   # <.>
@@ -154,7 +161,7 @@ master_disk_size = 120  # <.>
 
 
 Compute plane (e.g., worker/compure nodes):
-[source,txt]
+[source,hcl]
 ----
 worker_cpu       = 2    # <.>
 worker_memory    = 8    # <.>
@@ -164,10 +171,10 @@ worker_disk_size = 120  # <.>
 <.> Memory in GB
 <.> Disk size in GB
 
-[source,txt]
+[source,hcl]
 ----
-infra_cpu = 2           # <.>
-infra_memory = 8        # <.>
+infra_cpu       = 2     # <.>
+infra_memory    = 8     # <.>
 infra_disk_size = 120   # <.>
 ----
 <.> Number of CPUs
@@ -223,17 +230,12 @@ chose Python due to its inherent ease of use to interoperate with JSON. As in al
 simply create the necessary dependencies. The true salient point here is the use of `jsondecode` which was introduced in
 Terraform v0.12:
 
-[source,txt]
+[source,hcl]
 ----
-data "local_file" "hosts" {
-    depends_on = [ null_resource.generate-hosts ]
-    filename = "${var.gen_dir}/hosts.json"
-}
+include::machines-info/main.tf[]
+----
 
-locals {
-    hosts = jsondecode(data.local_file.hosts.content)
-}
-----
+Refer to: link:machines-info/main.tf[]
 
 
 === MAC Address Generation for Nodes
@@ -272,17 +274,62 @@ Here we simply ingest our own generated JSON from <<Dynamic Inventory Generation
 
 === libvirt Network Namespaces
 
-*TODO*
-
 We take advantage of https://libvirt.org/formatnetwork.html#elementsNamespaces[libvirt Network Namespaces] to set up
-wildcard DNS for default ingress so you don't have to.
+wildcard DNS for default ingress so you don't have to. This allows us to apply an XSL transform to libvirt's generated
+XML for the network before the libvirt network is provisioned. To accomplish all of this we arrange to apply the XSL
+transform using the generated inventory that was previously done and ingested as JSON (which then we can use these
+effectively as variables in most areas of Terraform) using Terraform's built in templating capability. The magic looks
+like this:
+
+[source,hcl]
+----
+include::network/main.tf[tag=network-customization]
+----
+
+Refer to: link:network/main.tf[]
+
+In the XSL we merely copy every element until we get to the parts we need:
+
+* DHCP reservations for every node type for the cluster, including the load balancer and bootstrap nodes..
+* Ensuring dnsmasq is configured with our default ingress VIP to the load balancer node.
+
+To accomplish this however we also need to ensure that we arrange for the stylesheet to enable the dnsmasq extensions
+for the resultant XML.
+
+[source,xml]
+.dnsmasq Extensions Enablement
+----
+xmlns:dnsmasq="http://libvirt.org/schemas/network/dnsmasq/1.0"
+----
+
+
+[source,xml]
+.DHCP Reservations
+----
+include::network/templates/network.xsl[tag=dhcp-reservations]
+----
+
+[source,xml]
+.Default Ingress VIP
+----
+include::network/templates/network.xsl[tag=ingress-vip]
+----
+
+Refer to: link:network/templates/network.xsl[]
 
 
 === Load Balancer Provisioning
 
-*TODO*
+A dedicated node is automatically provisioned for the HAProxy node. Once all nodes have been provisioned we wait for the
+load balancer node to become available. Once it is available we install HAProxy on the node, configure it with our
+cluster information for public API, private API and default ingress for both HTTP and HTTPS and start HAProxy.
 
-A dedicated node is automatically provisioned for the HAProxy node.
+We accomplish this by generating an Ansible inventory file in Terraform and finally have Terraform kick off Ansible and
+let Ansible "take it from there" for setting up the load balancer. We pass along to Ansible the generated JSON file that
+we originally created as part of <<Dynamic Inventory Generation>> which Ansible is more than happy to accept a JSON file
+that contains variables.
+
+All of this is accomplished in the `ansible` Terraform module.
 
 
 == Optimizations

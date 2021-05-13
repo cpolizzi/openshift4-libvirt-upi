@@ -16,6 +16,7 @@
         </network>
     </xsl:template>
 
+    <!-- tag::dhcp-reservations[] -->
     <xsl:template match="/network/ip/dhcp">
         <xsl:element name="dhcp">
             <xsl:apply-templates/>
@@ -36,7 +37,9 @@
             %{ endfor ~}
         </xsl:element>
     </xsl:template>
+    <!-- end::dhcp-reservations[] -->
 
+    <!-- tag::ingress-vip[] -->
     <xsl:template match="/network/ip">
         <ip>
         <xsl:apply-templates select="node()|@*"/>
@@ -45,4 +48,5 @@
             <dnsmasq:option value="address=/apps.${dns_domain}/${hosts.loadbalancer.ip-address}"/>
         </dnsmasq:options>
     </xsl:template>
+    <!-- end::ingress-vip[] -->
 </xsl:stylesheet>
