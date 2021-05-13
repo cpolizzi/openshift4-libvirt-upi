@@ -1,16 +1,29 @@
+:doctype: book
+:toc: macro
+:toclevels: 4
+:sectnumlevels: 6
+:numbered:
+:chapter-label:
+:icons: font
+
 = OpenShift 4 KVM UPI
 
 Terraform first approach to install an OpenShift 4 cluster under KVM / libvirt and HAProxy as the load balancer.
 
-It takes advantage of https://libvirt.org/formatnetwork.html#elementsNamespaces[libvirt Network namespaces] to set up
-wildcard DNS for default ingress so you don't have to.
+Notable highlights of this approach:
 
-It will automatically generate the `install-config.yaml` for the cluster, generate cluster SSH key pair and SSH key pair
-for load balancer node.
+* <<Cluster Installation Configuration Generation>>
+* <<Dynamic Inventory Generation>>
+* <<MAC Address Generation for Nodes>>
+* <<Terraform JSON Ingestion as Variables>>
+* <<libvirt Network Namespaces>>
+* <<Load Balancer Provisioning>>
 
-This has been tested against Terraform v0.12.
+toc::[]
+
 
 == Usage
+
 
 === Prerequisites
 
@@ -25,10 +38,19 @@ This has been tested against Terraform v0.12.
 * OpenShift Installer
 * Pull Secret
 * https://www.ansible.com/[Ansible]
+* Python 3
+
+
+=== Tested Configurations
+
+* Pop!OS 20.04 LTS
+* OpenShift 4.5.14
+* Terraform v0.12
+
 
 === Add libvirt dnsmasq server to Network Manager
 
-In `/etc/NetworkManager/dnsmasq.d/` create a file for the DNS configuration. For example, we might use:
+* In `/etc/NetworkManager/dnsmasq.d/` create a file for the DNS configuration. This will allow the host system to resolve addresses for the cluster using the libvirt DNS mask instance listening on the specified IP address. For example, we might use:
 [source,bash]
 ----
 cat <<EOF > sudo /etc/NetworkManager/dnsmasq.d/ocp.dnsmasq.conf
@@ -36,7 +58,17 @@ server=/ocp.example.io/192.168.200.1
 EOF
 ----
 
-Restart Network Manager:
+* In `/etc/NetworkManager/conf.d/` create a file to instruct Network Manager to consult dnsmasq for DNS resolutions:
+
+[source,bash]
+----
+cat <<EOF > sudo /etc/NetworkMnager/conf.d/nm.global.conf
+[main]
+dns=dnsmasq
+EOF
+----
+
+* Restart Network Manager:
 [source,bash]
 ----
 sudo systemctl restart NetworkManager
@@ -44,6 +76,7 @@ sudo systemctl restart NetworkManager
 
 
 === Override Terraform Variables for OpenShift Installer and Pull Secret
+
 In `terraform.tfvars`:
 [source,hcl]
 ----
@@ -51,10 +84,96 @@ openshift_installer = "<path-to-openshift-installer>"
 pull_secret_file    = "<path-to-pull-secret-file>"
 ----
 
-=== Override Terraform Variables for OpenShift Cluster Nodes
-For now, consult `variables.tf`.
+[NOTE]
+====
+Paths may be absolute or relative.
+====
 
-*TODO* This will be updated later to provide more comphrensive configuration guidance.
+
+=== Override Terraform Variables for OpenShift Cluster Nodes
+
+==== Basic Cluster Information
+
+Every cluster has simple and basic information that will uniquely identify it.
+
+In `terraform.tfvars`:
+[source,txt]
+----
+cluster_name                 = "mycluster"          # <.>
+base_domain                  = "example.io"         # <.>
+cluster_network_cidr_address = "192.168.200.0/24"   # <.>
+----
+<.> Cluster name as a simple host name
+<.> Cluster base DNS domain
+<.> Cluster network expressed in CIDR
+
+==== Nodes
+
+A cluster consists of a set amount of nodes for:
+* Control plane (e.g., masters).
+* Compute plane (e.g., workers).
+* Infrastructure plane
+[NOTE]
+====
+Infrastructure nodes were formally removed in OpenShift 4.0 and have never made a true formal reappearance from an
+installer perspective. However, an infrastructure node is merely a re-labeled compute (e.g., worker) node. This is a
+post configuration step of the installed cluster.
+====
+
+In `terraform.tfvars`:
+[source,txt]
+----
+master_count = 3    # <.>
+worker_count = 2    # <.>
+infra_count  = 0    # <.>
+----
+<.> Desired number of nodes for the control plane
+<.> Desired number of compute/worker nodes
+<.> Desired number of infrastructure nodes
++
+[WARNING]
+====
+Currently ignored
+====
+
+
+=== Node Resources
+
+Each node type can be customized for CPU, memory and disk.
+
+Control plane (e.g., master nodes):
+[source,txt]
+----
+master_cpu       = 4    # <.>
+master_memory    = 16   # <.>
+master_disk_size = 120  # <.>
+----
+<.> Number of CPUs
+<.> Memory in GB
+<.> Disk size in GB
+
+
+Compute plane (e.g., worker/compure nodes):
+[source,txt]
+----
+worker_cpu       = 2    # <.>
+worker_memory    = 8    # <.>
+worker_disk_size = 120  # <.>
+----
+<.> Number of CPUs
+<.> Memory in GB
+<.> Disk size in GB
+
+[source,txt]
+----
+infra_cpu = 2           # <.>
+infra_memory = 8        # <.>
+infra_disk_size = 120   # <.>
+----
+<.> Number of CPUs
+<.> Memory in GB
+<.> Disk size in GB
+
 
 === Install
 
@@ -67,9 +186,114 @@ terraform apply -auto-approve
 
 HAProxy statistics page is enabled and you can reach it via: http://loadbalancer.<cluster-name>.<base-domain-name>:8404/stats
 
+
 === Uninstall
 
 [source, bash]
 ----
 terraform destroy -auto-approve
 ----
+
+
+== Details
+
+
+=== Cluster Installation Configuration Generation
+
+We automatically perform the following:
+
+* Generation of `install-config.yaml` for the cluster.
+* Cluster SSH key pair generation.
+* Load balanacer node SSH key pair generation.
+
+All cluster assets are generated to `${gen_dir}/cluster` and include:
+
+* Kubernetes authentication details: `auth/kubeadmin-password` and `auth/kubeconfig`
+* Ignition files (manifests are generated as well by definition but are consumed by the installer and the ignition files are the end product)
+* SSH key pair: `keys/`
+
+Load balancer SSH key pair assets are generated to `${gen_dir}/keys`
+
+
+=== Dynamic Inventory Generation
+
+We dynamically generate the infrastructure inventory data that will be used to provision the infrastructure. This is
+done in the `machines-info` module and merely use a Terraform `local-exec` provisioner with a custom Python script. We
+chose Python due to its inherent ease of use to interoperate with JSON. As in all other Terraform resources we then
+simply create the necessary dependencies. The true salient point here is the use of `jsondecode` which was introduced in
+Terraform v0.12:
+
+[source,txt]
+----
+data "local_file" "hosts" {
+    depends_on = [ null_resource.generate-hosts ]
+    filename = "${var.gen_dir}/hosts.json"
+}
+
+locals {
+    hosts = jsondecode(data.local_file.hosts.content)
+}
+----
+
+
+=== MAC Address Generation for Nodes
+
+We use a procedural based approach when generating the MAC addresses for the nodes. This is used to
+setup DHCP reservations on the libvirt network for every node. Doing this assures that we know what they are ahead of
+time instead of having to come back and query libvirt for the IP address assigned to each node while the infrastructure
+is being provisioned. The idea is to determistically generate MAC addresses based on a cluster ID and node role for each node.
+
+Effectively this results in DHCP static host address reservations effectively mapping a given cluster node deterministic
+MAC address to its deterministic IP address counterpart and yet in a dynamic manner.
+
+The rationale behind this is succinct and elegant with the IP addresses for each node type (e.g., role) being smartly
+incremented along with their corresponding MAC address:
+
+* We are given a MAC OUI, in this case for KVM / libvirt: `52:54:00` and we encapsulate via the Terraform variable `cluster_network_mac_oui`
+* The load balancer is always placed at the IP network address + 2
+* The bootstrap node is always placed at the IP network address + 10
+* The control plane nodes (e.g., masters) are always placed at the IP network address +20
+* The compute plane nodes (e.g., workers) are always placed at the IP network address +30
+* The infrastructure nodes are always placed at the IP network address +40
+
+Refer to: link:machines-info/generate-hosts.py[]
+
+Reference: https://en.wikipedia.org/wiki/MAC_address[MAC Address]
+
+
+=== Terraform JSON Ingestion as Variables
+
+We leverage Terraform's ability to ingest JSON and use it as a source of variables. We exploit this to generate the
+necessary cluster node assets prior to provisioning them. This is where Terraform's `jsondecode` truly saves us:
+
+Reference: https://www.terraform.io/docs/language/functions/jsondecode.html[Terraform JSON Decode]
+
+Here we simply ingest our own generated JSON from <<Dynamic Inventory Generation>> as a regular Terraform directive with the relevant dependency.
+
+=== libvirt Network Namespaces
+
+*TODO*
+
+We take advantage of https://libvirt.org/formatnetwork.html#elementsNamespaces[libvirt Network Namespaces] to set up
+wildcard DNS for default ingress so you don't have to.
+
+
+=== Load Balancer Provisioning
+
+*TODO*
+
+A dedicated node is automatically provisioned for the HAProxy node.
+
+
+== Optimizations
+
+Most Linux distributions at this point have KSM (Kernel Same Page Merging) automatically enabled. This can yield a
+significant memory savings. However, for those distributions that might not the following may prove useful:
+
+https://www.linux-kvm.org/page/KSM[Kernel Samepage Merging]
+
+== Acknowledgements
+
+* David Dreggors, Red Hat
+** For the idea, inspiration and discussion of <<MAC Address Generation for Nodes>>
+** A very nice, working and sustainable HAProxy configuration for which we made a Jinja 2 template for! link:ansible/playbooks/templates/haproxy/haproxy.cfg[]
