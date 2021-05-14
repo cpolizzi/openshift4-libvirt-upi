@@ -58,7 +58,7 @@ module "boostrap-node" {
     hosts_info = [ module.machines-info.hosts_config.bootstrap ]
     ignition_config_path = module.install-config.bootstrap_ignition
     image_dir = "/var/lib/libvirt/images"
-    image_name = "rhcos-4.5.2-x86_64-qemu.x86_64.qcow2"
+    image_name = "rhcos-4.7.0-x86_64-qemu.x86_64.qcow2"
     network_name = var.cluster_network_name
     cpu = var.bootstrap_cpu
     memory = var.bootstrap_memory
@@ -72,7 +72,7 @@ module "control-nodes" {
     hosts_info = module.machines-info.hosts_config.masters
     ignition_config_path = module.install-config.master_ignition
     image_dir = "/var/lib/libvirt/images"
-    image_name = "rhcos-4.5.2-x86_64-qemu.x86_64.qcow2"
+    image_name = "rhcos-4.7.0-x86_64-qemu.x86_64.qcow2"
     network_name = var.cluster_network_name
     cpu = var.master_cpu
     memory = var.master_memory
@@ -86,7 +86,7 @@ module "compute-nodes" {
     hosts_info = module.machines-info.hosts_config.workers
     ignition_config_path = module.install-config.compute_ignition
     image_dir = "/var/lib/libvirt/images"
-    image_name = "rhcos-4.5.2-x86_64-qemu.x86_64.qcow2"
+    image_name = "rhcos-4.7.0-x86_64-qemu.x86_64.qcow2"
     network_name = var.cluster_network_name
     cpu = var.worker_cpu
     memory = var.worker_memory
@@ -100,7 +100,7 @@ module "compute-nodes" {
 #    hosts_info = module.machines-info.hosts_config.infras
 #    ignition_config_path = module.install-config.compute_ignition
 #    image_dir = "/var/lib/libvirt/images"
-#    image_name = "rhcos-4.5.2-x86_64-qemu.x86_64.qcow2"
+#    image_name = "rhcos-4.7.0-x86_64-qemu.x86_64.qcow2"
 #    network_name = var.cluster_network_name
 #    cpu = var.infra_cpu
 #    memory = var.infra_memory

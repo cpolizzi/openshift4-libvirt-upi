@@ -47,7 +47,7 @@ toc::[]
 === Tested Configurations
 
 * Pop!OS 20.04 LTS
-* OpenShift 4.5.14
+* OpenShift 4.5.14, 4.7.6
 * Terraform v0.12
 
 
