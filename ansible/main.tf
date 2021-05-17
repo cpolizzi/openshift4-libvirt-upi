@@ -16,20 +16,34 @@ resource "local_file" "ansible-inventory" {
         haproxy-ip = var.loadbalancer.ip,
         haproxy-user = var.loadbalancer.user,
         ssh-private-key = local_file.ssh-private-key.filename,
+        bootstrap-host = var.bootstrap.host,
+        bootstrap-fqdn = var.bootstrap.fqdn,
+        bootstrap-ip = var.bootstrap.ip,
     })
     filename = "${var.gen_dir}/ansible/inventory"
     file_permission = "0644"
 }
 
-resource "null_resource" "ansible-inventory" {
+resource "null_resource" "ansible-haproxy" {
     provisioner "local-exec" {
-#        command = "ANSIBLE_FORCE_COLOR=1 ansible-playbook -i ${local_file.ansible-inventory.filename} ${path.module}/playbooks/haproxy.yaml -e hosts_info_file=${var.hosts_info_file}"
         command = join(" ", [
             "ANSIBLE_FORCE_COLOR=1",
             "ansible-playbook",
             "-i", local_file.ansible-inventory.filename,
             "-e", "hosts_info_file=${var.hosts_info_file}",
             "${path.module}/playbooks/haproxy.yaml",
+        ])
+    }
+}
+
+resource "null_resource" "ansible-bootstrap" {
+    provisioner "local-exec" {
+        command = join(" ", [
+            "ANSIBLE_FORCE_COLOR=1",
+            "ansible-playbook",
+            "-i", local_file.ansible-inventory.filename,
+            "-e", "hosts_info_file=${var.hosts_info_file}",
+            "${path.module}/playbooks/bootstrap.yaml",
         ])
     }
 }

@@ -1,0 +1,32 @@
+---
+- hosts: bootstrap
+  gather_facts: no
+  tasks:
+    - name: include variables
+      include_vars:
+        file: "{{ hosts_info_file }}"
+
+    - name: wait for bootstrap node to become available
+      wait_for:
+        host: "{{ bootstrap['ip-address'] }}"
+        port: 6443
+        state: started
+        sleep: 10
+      delegate_to: localhost
+
+    - name: wait for bootstrap node to shutdown
+      wait_for:
+        host: "{{ bootstrap['ip-address'] }}"
+        port: 6443
+        state: stopped
+        sleep: 10
+        timeout: 1200000
+      delegate_to: localhost
+
+
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: start csr approver
+      debug:
+        msg: "start csr approver"

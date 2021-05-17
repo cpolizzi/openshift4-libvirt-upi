@@ -117,5 +117,10 @@ module "ansible" {
     source = "./ansible"
     gen_dir = var.gen_dir
     loadbalancer = module.loadbalancer.instance
+    bootstrap = {
+        host = module.machines-info.hosts_config.bootstrap.hostname,
+        fqdn = module.machines-info.hosts_config.bootstrap.fqdn,
+        ip = module.machines-info.hosts_config.bootstrap.ip-address,
+    }
     hosts_info_file = abspath("${var.gen_dir}/hosts.json")
 }
