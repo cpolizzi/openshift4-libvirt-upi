@@ -47,3 +47,10 @@ resource "null_resource" "ansible-bootstrap" {
         ])
     }
 }
+
+resource "local_file" "bootstrap-complete" {
+    depends_on = [ null_resource.ansible-bootstrap ] 
+    content = "True"
+    filename = "${var.gen_dir}/bootstrap-complete"
+    file_permission = "0644"
+}
