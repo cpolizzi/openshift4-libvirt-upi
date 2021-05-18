@@ -22,11 +22,3 @@
         sleep: 10
         timeout: 1200000
       delegate_to: localhost
-
-
-- hosts: localhost
-  gather_facts: no
-  tasks:
-    - name: start csr approver
-      debug:
-        msg: "start csr approver"

@@ -124,3 +124,11 @@ module "ansible" {
     }
     hosts_info_file = abspath("${var.gen_dir}/hosts.json")
 }
+
+module "csr-approver" {
+    source = "./csr-approver"
+    bootstrap-complete = module.ansible.bootstrap-complete
+    kube-config = "${var.gen_dir}/cluster/auth/kubeconfig"
+    worker_count = var.worker_count
+    infra_count = var.infra_count
+}
