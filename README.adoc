@@ -21,6 +21,7 @@ Notable highlights of this approach:
 * <<Terraform JSON Ingestion as Variables>>
 * <<libvirt Network Namespaces>>
 * <<Load Balancer Provisioning>>
+* <<Automatic Certificate Signing Request Approvals>>
 
 toc::[]
 
@@ -330,6 +331,16 @@ we originally created as part of <<Dynamic Inventory Generation>> which Ansible 
 that contains variables.
 
 All of this is accomplished in the `ansible` Terraform module.
+
+
+== Automatic Certificate Signing Request Approvals
+
+Certificate Signing Requests (CSR's) are automatically approved. This is accomplished by having Terraform kick execute
+an Ansible playbook whose sole purpose is to monitor the state of the bootstrap node. It specifically waits for the
+bootstrap node to first transition from not available to available and then back to unavailable. This is done by polling
+the bootstrap nodes' public API port directly (bypassing the HAProxy load balancer). Once the bootstrap node has pulsed
+in this fashion then Terraform is orchestrated to run a custom Python script in the `csr-approver` module which merely
+establishes a standard Kubernetes watch for certificate signing requests and when received, it approves them.
 
 
 == Optimizations
